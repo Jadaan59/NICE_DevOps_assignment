@@ -3,14 +3,34 @@
 ## Project Overview
 This project demonstrates how to build and deploy a fully automated serverless application on AWS using Infrastructure as Code (IaC). It is designed for students learning AWS, DevOps, and serverless concepts.
 
-### Features
-- All AWS resources are defined in code using AWS CDK (Python)
-- Lambda function lists S3 objects and sends an SNS email notification
-- S3 bucket is created and populated with sample files
-- IAM role with least-privilege permissions
-- SNS topic with email subscription
-- CI/CD deployment using GitHub Actions
-- Manual Lambda trigger for testing
+---
+
+## What is AWS CDK and Why Use It?
+
+**AWS Cloud Development Kit (CDK)** is an open-source software development framework for defining cloud infrastructure in code and provisioning it through AWS CloudFormation.  
+**Why use it?**
+- Write infrastructure as code in familiar programming languages (like Python).
+- Version, review, and reuse your infrastructure just like application code.
+- Automate, document, and repeat deployments easily.
+
+---
+
+## Architecture Diagram
+
+```mermaid
+flowchart TD
+    User["User (You)"]
+    S3["S3 Bucket"]
+    Lambda["Lambda Function"]
+    SNS["SNS Topic"]
+    Email["Email Notification"]
+
+    User -- "Upload files" --> S3
+    User -- "Manually trigger" --> Lambda
+    Lambda -- "List objects" --> S3
+    Lambda -- "Publish message" --> SNS
+    SNS -- "Send email" --> Email
+```
 
 ---
 
@@ -19,8 +39,11 @@ This project demonstrates how to build and deploy a fully automated serverless a
 infra/           # AWS CDK code (Python)
 lambda/          # Lambda function code (Python)
 sample_files/    # Files to upload to S3 during deployment
-EXPLANATION.md   # Detailed learning explanations
+invoke_lambda.py # Script to manually trigger Lambda
+upload_sample_files.py # Script to upload files to S3
+.github/workflows/deploy.yml # GitHub Actions workflow
 README.md        # This file
+EXPLANATION.md   # (Personal learning only, do NOT commit)
 ```
 
 ---
@@ -36,6 +59,7 @@ README.md        # This file
 ---
 
 ## Setup & Deployment
+
 ### 1. Clone the repository:
 
 ```sh
@@ -66,17 +90,50 @@ cdk deploy
 - You will see outputs for the S3 bucket, Lambda, and SNS topic.
 - Check your email (the one you set in the code) and confirm the SNS subscription.
 
+#### Example `cdk deploy` Outputs
+
+```
+Outputs:
+NICEDevOpsAssignmentStack.BucketName = my-devops-assignment-bucket
+NICEDevOpsAssignmentStack.LambdaFunctionName = ListS3AndNotifyLambda-abc123
+NICEDevOpsAssignmentStack.SnsTopicArn = arn:aws:sns:us-east-1:123456789012:AssignmentTopic
+NICEDevOpsAssignmentStack.SnsSubscriptionEmail = student@example.com
+```
+
+---
+
 ### 5. Upload sample files to S3:
 - Add files to the `sample_files/` folder.
-- Use the AWS CLI or a script to upload them (instructions will be provided).
+- Use the upload script:
+
+```sh
+python upload_sample_files.py <YourBucketName>
+```
 
 ---
 
 ## Manual Lambda Test
 You can manually trigger the Lambda function for testing:
 
-### Using AWS CLI:
+### Using Python script:
+```sh
+python invoke_lambda.py <YourLambdaFunctionName>
+```
 
+#### Example Output
+
+```
+Status code: 200
+Response payload: {
+  "bucket": "my-devops-assignment-bucket",
+  "object_count": 2,
+  "objects": ["file1.txt", "file2.txt"],
+  "error": null,
+  "event": {}
+}
+```
+
+### Using AWS CLI:
 ```sh
 aws lambda invoke \
   --function-name <LambdaFunctionName> \
@@ -93,21 +150,32 @@ Replace `<LambdaFunctionName>` with the name output by the CDK deploy.
 ---
 
 ## GitHub Actions CI/CD
-- The project includes a GitHub Actions workflow (to be added) that deploys your stack when manually triggered from GitHub.
-- You must add your AWS credentials as GitHub repository secrets (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and optionally `AWS_REGION`).
 
----
+- The project includes a GitHub Actions workflow that deploys your stack when manually triggered from GitHub.
+- You must add your AWS credentials as GitHub repository secrets.
 
-## Learning Resources
-- See `EXPLANATION.md` for a detailed explanation of each part of the project.
-- AWS CDK Docs: https://docs.aws.amazon.com/cdk/latest/guide/home.html
-- AWS Lambda Docs: https://docs.aws.amazon.com/lambda/latest/dg/welcome.html
-- AWS S3 Docs: https://docs.aws.amazon.com/s3/index.html
-- AWS SNS Docs: https://docs.aws.amazon.com/sns/latest/dg/welcome.html
+### Setting Up AWS Credentials as GitHub Repository Secrets
+
+1. In your AWS account, create or use an IAM user with permissions for CDK deployment (CloudFormation, S3, Lambda, IAM, SNS).
+2. In the AWS Console, go to **IAM > Users > [Your User] > Security credentials** and create an **Access key**.
+3. In your GitHub repository, go to **Settings > Secrets and variables > Actions > New repository secret**.
+4. Add the following secrets:
+   - `AWS_ACCESS_KEY_ID` – your AWS access key ID
+   - `AWS_SECRET_ACCESS_KEY` – your AWS secret access key
+   - `AWS_REGION` – your preferred AWS region (e.g., `us-east-1`)
+
+Now you can trigger the workflow from the **Actions** tab in GitHub.
 
 ---
 
 ## Notes
 - This project uses placeholder values for the S3 bucket name and SNS email. Change them in the code before deploying to your own AWS account.
 - The S3 bucket and all resources will be **destroyed** if you delete the stack (for learning/demo only).
-- For any questions, see the code comments and `EXPLANATION.md`. 
+- For any questions, see the code comments.
+- **EXPLANATION.md is for your personal learning and should NOT be committed or pushed to GitHub.** 
+
+---
+
+## Credits
+
+Built by [your name] as part of a NICE DevOps assignment. 

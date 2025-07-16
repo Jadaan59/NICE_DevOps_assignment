@@ -16,12 +16,12 @@ class InfraStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         # Placeholder S3 bucket name
-        bucket_name = "my-devops-assignment-bucket"
+        bucket_name = "my-devops-assignment-bucket12225214455223"
 
         # 1. Create the S3 bucket
         bucket = s3.Bucket(self, "AssignmentBucket",
             bucket_name=bucket_name,
-            removal_policy=s3.RemovalPolicy.DESTROY,  # NOT for production, for student/demo only
+            removal_policy=s3.RemovalPolicy.DESTROY,
             auto_delete_objects=True
         )
 
@@ -31,7 +31,7 @@ class InfraStack(Stack):
         )
 
         # 3. Add an email subscription to the SNS topic (placeholder email)
-        topic.add_subscription(subs.EmailSubscription("student@example.com"))
+        topic.add_subscription(subs.EmailSubscription("jadaan59@gmail.com"))
 
         # 4. Create IAM role for Lambda with least-privilege permissions
         lambda_role = iam.Role(self, "LambdaExecutionRole",
@@ -61,4 +61,4 @@ class InfraStack(Stack):
         CfnOutput(self, "BucketName", value=bucket.bucket_name)
         CfnOutput(self, "LambdaFunctionName", value=lambda_fn.function_name)
         CfnOutput(self, "SnsTopicArn", value=topic.topic_arn)
-        CfnOutput(self, "SnsSubscriptionEmail", value="student@example.com")
+        CfnOutput(self, "SnsSubscriptionEmail", value="jadaan59@gmail.com")
