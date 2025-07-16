@@ -1,0 +1,70 @@
+DevOps Student Assignment Instructions
+Objective
+Design and deploy a fully automated serverless application on AWS using Infrastructure as Code (IaC). The application should list S3 objects, send an email notification on each execution, and upload local files to the S3 bucket during deployment. The Lambda must also be manually triggerable for testing purposes.
+
+Requirements
+1. GitHub Repository Setup
+Create a public GitHub repository
+Include a well-structured README.md explaining:
+Project overview
+Setup and deployment steps
+Manual Lambda test instructions
+Tools/frameworks used (e.g., AWS CDK, Terraform)
+
+2. Infrastructure as Code
+Use code to define and deploy all AWS resources
+Accepted tools:
+AWS CDK (preferred)
+Terraform
+CloudFormation
+Serverless Framework
+
+3. Lambda Function
+Language: Python or Node.js
+Function must:
+List all objects in a specified S3 bucket
+Publish a message to an SNS topic with execution details
+
+4. S3 Bucket
+Create the S3 bucket using IaC
+Upload files from a local folder (e.g., sample_files/) to the bucket as part of the deployment process
+Can be implemented using SDK calls, CLI commands, or CI pipeline steps
+
+5. IAM Role
+Define an IAM role with least-privilege permissions:
+S3 read access
+SNS publish access
+Lambda execution
+Attach the role to the Lambda function using code
+
+6. SNS Topic and Email Subscription
+Create an SNS topic via code
+Add an email subscription to receive notifications when the Lambda is invoked
+Note in the README that the recipient must confirm the email after the first deployment
+
+7. CI/CD with GitHub Actions
+Automate deployment with a GitHub Actions workflow:
+Trigger on workflow_dispatch (manual trigger)
+Deploy all infrastructure
+
+8. Manual Lambda Trigger Test
+Add a way to manually trigger the Lambda function, for example:
+A test script using the AWS CLI (e.g., aws lambda invoke)
+A script using the AWS SDK (e.g., boto3 or aws-sdk)
+A test event file (JSON) used with the CLI or console
+Document the manual trigger process clearly in the README.md
+
+Deliverables
+GitHub repository containing:
+Infrastructure code (IaC)
+Lambda function code
+sample_files/ folder with sample S3 data
+GitHub Actions workflow
+Test script or method for manual Lambda invocation
+README.md with complete instructions
+AWS deployment must include:
+Lambda function that lists S3 objects and sends SNS email alerts
+Confirmed SNS email subscription
+Files uploaded to S3 from local folder during deployment
+Verified manual trigger of Lambda function
+
