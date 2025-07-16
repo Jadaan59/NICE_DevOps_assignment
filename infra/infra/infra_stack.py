@@ -1,19 +1,64 @@
 from aws_cdk import (
-    # Duration,
     Stack,
-    # aws_sqs as sqs,
+    aws_s3 as s3,
+    aws_lambda as _lambda,
+    aws_iam as iam,
+    aws_sns as sns,
+    aws_sns_subscriptions as subs,
+    Duration,
+    CfnOutput,
 )
 from constructs import Construct
+import os
 
 class InfraStack(Stack):
-
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # The code that defines your stack goes here
+        # Placeholder S3 bucket name
+        bucket_name = "my-devops-assignment-bucket"
 
-        # example resource
-        # queue = sqs.Queue(
-        #     self, "InfraQueue",
-        #     visibility_timeout=Duration.seconds(300),
-        # )
+        # 1. Create the S3 bucket
+        bucket = s3.Bucket(self, "AssignmentBucket",
+            bucket_name=bucket_name,
+            removal_policy=s3.RemovalPolicy.DESTROY,  # NOT for production, for student/demo only
+            auto_delete_objects=True
+        )
+
+        # 2. Create the SNS topic
+        topic = sns.Topic(self, "AssignmentTopic",
+            display_name="Lambda Execution Notifications"
+        )
+
+        # 3. Add an email subscription to the SNS topic (placeholder email)
+        topic.add_subscription(subs.EmailSubscription("student@example.com"))
+
+        # 4. Create IAM role for Lambda with least-privilege permissions
+        lambda_role = iam.Role(self, "LambdaExecutionRole",
+            assumed_by=iam.ServicePrincipal("lambda.amazonaws.com")
+        )
+        # S3 read access
+        bucket.grant_read(lambda_role)
+        # SNS publish access
+        topic.grant_publish(lambda_role)
+        # Basic Lambda execution
+        lambda_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"))
+
+        # 5. Create the Lambda function
+        lambda_fn = _lambda.Function(self, "ListS3AndNotifyLambda",
+            runtime=_lambda.Runtime.PYTHON_3_9,
+            handler="lambda_function.lambda_handler",
+            code=_lambda.Code.from_asset(os.path.join(os.path.dirname(__file__), '../../lambda')),
+            environment={
+                "BUCKET_NAME": bucket.bucket_name,
+                "SNS_TOPIC_ARN": topic.topic_arn
+            },
+            role=lambda_role,
+            timeout=Duration.seconds(30)
+        )
+
+        # Output useful info for student
+        CfnOutput(self, "BucketName", value=bucket.bucket_name)
+        CfnOutput(self, "LambdaFunctionName", value=lambda_fn.function_name)
+        CfnOutput(self, "SnsTopicArn", value=topic.topic_arn)
+        CfnOutput(self, "SnsSubscriptionEmail", value="student@example.com")
