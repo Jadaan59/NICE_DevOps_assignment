@@ -1,0 +1,12 @@
+This is a test file for the NICE DevOps assignment.
+
+This file will be uploaded to the S3 bucket during deployment to demonstrate the file upload functionality.
+
+Features demonstrated:
+- S3 bucket creation via AWS CDK
+- File upload during CI/CD deployment
+- Lambda function listing S3 objects
+- SNS email notifications
+
+Created: 2024
+Purpose: Educational DevOps assignment 

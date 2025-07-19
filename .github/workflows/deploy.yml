@@ -40,12 +40,36 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
       - name: Deploy CDK stack
+        id: deploy
         run: |
           cd infra
           source .venv/bin/activate
           cdk deploy --require-approval never
+        env:
+          SNS_EMAIL: ${{ secrets.SNS_EMAIL }}
+
+      - name: Get S3 bucket name
+        id: get-bucket
+        run: |
+          cd infra
+          source .venv/bin/activate
+          BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name InfraStack --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue' --output text)
+          echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
+          echo "S3 Bucket Name: $BUCKET_NAME"
+
+      - name: Upload sample files to S3
+        run: |
+          if [ -d "sample_files" ] && [ "$(ls -A sample_files)" ]; then
+            echo "Uploading files from sample_files/ to S3 bucket: ${{ steps.get-bucket.outputs.bucket_name }}"
+            aws s3 cp ./sample_files/ s3://${{ steps.get-bucket.outputs.bucket_name }}/ --recursive
+            echo "Successfully uploaded files to S3"
+          else
+            echo "No files found in sample_files/ directory"
+          fi
+        continue-on-error: true
 
 # Notes:
 # - Add your AWS credentials as GitHub repository secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+# - Add SNS_EMAIL secret for email notifications
 # - This workflow must be triggered manually from the GitHub Actions tab (workflow_dispatch)
-# - The stack will be deployed to your AWS account 
+# - The stack will be deployed to your AWS account and sample files will be uploaded to S3 

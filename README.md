@@ -77,7 +77,7 @@ Before deploying, you **must** configure the email address for SNS notifications
 export SNS_EMAIL="your-email@example.com"
 ```
 
-**⚠️ Important**: After deployment, check your email and **confirm the SNS subscription** by clicking the confirmation link.
+**Important**: After deployment, check your email and **confirm the SNS subscription** by clicking the confirmation link. You won't receive notifications until you confirm the subscription.
 
 ### 3. Install Dependencies
 
@@ -111,12 +111,39 @@ InfraStack.SnsSubscriptionEmail = your-email@example.com
 
 ### 6. Upload Sample Files
 
+Files from the `sample_files/` directory will be automatically uploaded to S3 during GitHub Actions deployment. For manual upload:
+
 ```bash
 # Upload files from sample_files/ directory
 python upload_sample_files.py <your-bucket-name>
 ```
 
+### 7. Post-Deployment Verification
+
+After deployment, verify everything is working:
+
+1. **Check SNS Email Subscription**:
+   - Check your email for SNS confirmation message
+   - Click the confirmation link to activate notifications
+
+2. **Verify S3 Files**:
+   ```bash
+   aws s3 ls s3://<your-bucket-name>/
+   ```
+
+3. **Test Lambda Function**:
+   ```bash
+   python invoke_lambda.py <lambda-function-name>
+   ```
+
+4. **Check CloudWatch Logs**:
+   ```bash
+   aws logs tail /aws/lambda/<function-name> --follow
+   ```
+
 ## Manual Lambda Testing
+
+You can manually trigger the Lambda function to test its functionality and verify SNS notifications.
 
 ### Option 1: Python Script (Recommended)
 
@@ -143,6 +170,9 @@ aws lambda invoke \
   --function-name <lambda-function-name> \
   --payload '{}' \
   response.json
+
+# View the response
+cat response.json
 ```
 
 ### Option 3: AWS Console
@@ -152,6 +182,13 @@ aws lambda invoke \
 3. Click "Test" → "Create new event"
 4. Use empty event: `{}`
 5. Click "Test"
+
+### Expected Results
+
+After successful invocation, you should:
+- Receive an email notification from SNS (if subscription is confirmed)
+- See the Lambda response with bucket information
+- Check CloudWatch logs for detailed execution logs
 
 ## GitHub Actions CI/CD
 
@@ -164,7 +201,7 @@ The project includes automated deployment via GitHub Actions.
    - `AWS_ACCESS_KEY_ID`: Your AWS access key
    - `AWS_SECRET_ACCESS_KEY`: Your AWS secret key
    - `AWS_REGION`: Your AWS region (e.g., `us-east-1`)
-   - `SNS_EMAIL`: Your email for notifications
+   - `SNS_EMAIL`: Your email for notifications (required for SNS subscription)
 
 ### Trigger Deployment
 
@@ -201,8 +238,9 @@ The project includes automated deployment via GitHub Actions.
 
 1. **Email Not Received**
    - Check spam folder
-   - Confirm SNS subscription in email
+   - Confirm SNS subscription in email (click the confirmation link)
    - Verify email address in environment variable
+   - Check SNS topic in AWS Console for subscription status
 
 2. **Lambda Invocation Fails**
    - Check function name is correct
