@@ -15,36 +15,40 @@ class InfraStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # Placeholder S3 bucket name
-        bucket_name = "my-devops-assignment-bucket12225214455223"
+        # Configuration - Update these values before deployment
+        bucket_name = "my-devops-assignment-bucket-" + os.getenv('CDK_DEFAULT_ACCOUNT', 'demo')
+        email_address = os.getenv('SNS_EMAIL', 'your-email@example.com')  # Set this environment variable
 
-        # 1. Create the S3 bucket
+        # Create S3 bucket for storing files
         bucket = s3.Bucket(self, "AssignmentBucket",
             bucket_name=bucket_name,
             removal_policy=s3.RemovalPolicy.DESTROY,
             auto_delete_objects=True
         )
 
-        # 2. Create the SNS topic
+        # Create SNS topic for Lambda execution notifications
         topic = sns.Topic(self, "AssignmentTopic",
             display_name="Lambda Execution Notifications"
         )
 
-        # 3. Add an email subscription to the SNS topic (placeholder email)
-        topic.add_subscription(subs.EmailSubscription("jadaan59@gmail.com"))
+        # Add email subscription to receive notifications
+        topic.add_subscription(subs.EmailSubscription(email_address))
 
-        # 4. Create IAM role for Lambda with least-privilege permissions
+        # Create IAM role for Lambda with least-privilege permissions
         lambda_role = iam.Role(self, "LambdaExecutionRole",
             assumed_by=iam.ServicePrincipal("lambda.amazonaws.com")
         )
-        # S3 read access
+        
+        # Grant S3 read access to the specific bucket
         bucket.grant_read(lambda_role)
-        # SNS publish access
+        
+        # Grant SNS publish access to the topic
         topic.grant_publish(lambda_role)
-        # Basic Lambda execution
+        
+        # Add basic Lambda execution permissions
         lambda_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"))
 
-        # 5. Create the Lambda function
+        # Create Lambda function
         lambda_fn = _lambda.Function(self, "ListS3AndNotifyLambda",
             runtime=_lambda.Runtime.PYTHON_3_9,
             handler="lambda_function.lambda_handler",
@@ -57,8 +61,8 @@ class InfraStack(Stack):
             timeout=Duration.seconds(30)
         )
 
-        # Output useful info for student
+        # Output useful information for deployment
         CfnOutput(self, "BucketName", value=bucket.bucket_name)
         CfnOutput(self, "LambdaFunctionName", value=lambda_fn.function_name)
         CfnOutput(self, "SnsTopicArn", value=topic.topic_arn)
-        CfnOutput(self, "SnsSubscriptionEmail", value="jadaan59@gmail.com")
+        CfnOutput(self, "SnsSubscriptionEmail", value=email_address)

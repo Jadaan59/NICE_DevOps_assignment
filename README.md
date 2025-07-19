@@ -1,181 +1,248 @@
-# NICE DevOps Assignment
+# NICE DevOps Assignment - Serverless AWS Application
 
 ## Project Overview
-This project demonstrates how to build and deploy a fully automated serverless application on AWS using Infrastructure as Code (IaC). It is designed for students learning AWS, DevOps, and serverless concepts.
 
----
+This project demonstrates a fully automated serverless application on AWS using Infrastructure as Code (IaC). The application includes:
 
-## What is AWS CDK and Why Use It?
+- **AWS Lambda Function**: Lists all objects in an S3 bucket and sends email notifications
+- **S3 Bucket**: Stores files uploaded during deployment
+- **SNS Topic**: Sends email notifications on Lambda execution
+- **IAM Roles**: Least-privilege permissions for security
+- **GitHub Actions**: Automated CI/CD deployment pipeline
 
-**AWS Cloud Development Kit (CDK)** is an open-source software development framework for defining cloud infrastructure in code and provisioning it through AWS CloudFormation.  
-**Why use it?**
-- Write infrastructure as code in familiar programming languages (like Python).
-- Version, review, and reuse your infrastructure just like application code.
-- Automate, document, and repeat deployments easily.
-
----
-
-## Architecture Diagram
+## Architecture
 
 ```mermaid
 flowchart TD
-    User["User (You)"]
+    User["User/Developer"]
     S3["S3 Bucket"]
     Lambda["Lambda Function"]
     SNS["SNS Topic"]
     Email["Email Notification"]
+    GitHub["GitHub Actions"]
 
     User -- "Upload files" --> S3
-    User -- "Manually trigger" --> Lambda
+    User -- "Manual trigger" --> Lambda
+    GitHub -- "Deploy infrastructure" --> S3
+    GitHub -- "Deploy infrastructure" --> Lambda
+    GitHub -- "Deploy infrastructure" --> SNS
     Lambda -- "List objects" --> S3
     Lambda -- "Publish message" --> SNS
     SNS -- "Send email" --> Email
 ```
 
----
-
 ## Project Structure
-```
-infra/           # AWS CDK code (Python)
-lambda/          # Lambda function code (Python)
-sample_files/    # Files to upload to S3 during deployment
-invoke_lambda.py # Script to manually trigger Lambda
-upload_sample_files.py # Script to upload files to S3
-.github/workflows/deploy.yml # GitHub Actions workflow
-README.md        # This file
-EXPLANATION.md   # (Personal learning only, do NOT commit)
-```
 
----
+```
+├── infra/                    # AWS CDK infrastructure code
+│   ├── app.py               # CDK application entry point
+│   ├── infra_stack.py       # Main infrastructure stack
+│   ├── requirements.txt     # Python dependencies
+│   └── cdk.json            # CDK configuration
+├── lambda/                  # Lambda function code
+│   └── lambda_function.py  # Main Lambda handler
+├── sample_files/           # Files to upload to S3
+├── .github/workflows/      # GitHub Actions CI/CD
+│   └── deploy.yml         # Deployment workflow
+├── invoke_lambda.py        # Manual Lambda trigger script
+├── upload_sample_files.py  # S3 upload utility script
+└── README.md              # This file
+```
 
 ## Prerequisites
-- AWS account with programmatic access (Access Key ID & Secret)
-- AWS CLI configured locally (`aws configure`)
+
+- AWS account with programmatic access
+- AWS CLI configured (`aws configure`)
 - Python 3.8+
-- Node.js & npm (for AWS CDK CLI)
+- Node.js 18+ and npm
 - AWS CDK CLI (`npm install -g aws-cdk`)
 - Git
 
----
+## Quick Start
 
-## Setup & Deployment
+### 1. Clone and Setup
 
-### 1. Clone the repository:
-
-```sh
-git clone https://github.com/Jadaan59/NICE_DevOps_assignment.git
+```bash
+git clone https://github.com/Jadaan59/
+NICE_DevOps_assignment.git
 cd NICE_DevOps_assignment
 ```
 
-### 2. Install dependencies:
+### 2. Configure Email (IMPORTANT)
 
-```sh
+Before deploying, you **must** configure the email address for SNS notifications:
+
+```bash
+# Set your email address for SNS notifications
+export SNS_EMAIL="your-email@example.com"
+```
+
+**⚠️ Important**: After deployment, check your email and **confirm the SNS subscription** by clicking the confirmation link.
+
+### 3. Install Dependencies
+
+```bash
 cd infra
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3. Bootstrap your AWS environment (first time only):
+### 4. Bootstrap AWS CDK (First Time Only)
 
-```sh
+```bash
 cdk bootstrap
 ```
 
-### 4. Deploy the stack:
+### 5. Deploy Infrastructure
 
-```sh
+```bash
 cdk deploy
 ```
-- You will see outputs for the S3 bucket, Lambda, and SNS topic.
-- Check your email (the one you set in the code) and confirm the SNS subscription.
 
-#### Example `cdk deploy` Outputs
-
+**Expected Output:**
 ```
 Outputs:
-NICEDevOpsAssignmentStack.BucketName = my-devops-assignment-bucket
-NICEDevOpsAssignmentStack.LambdaFunctionName = ListS3AndNotifyLambda-abc123
-NICEDevOpsAssignmentStack.SnsTopicArn = arn:aws:sns:us-east-1:123456789012:AssignmentTopic
-NICEDevOpsAssignmentStack.SnsSubscriptionEmail = student@example.com
+InfraStack.BucketName = my-devops-assignment-bucket-123456789012
+InfraStack.LambdaFunctionName = InfraStack-ListS3AndNotifyLambda-ABC123
+InfraStack.SnsTopicArn = arn:aws:sns:us-east-1:123456789012:InfraStack-AssignmentTopic-ABC123
+InfraStack.SnsSubscriptionEmail = your-email@example.com
 ```
 
----
+### 6. Upload Sample Files
 
-### 5. Upload sample files to S3:
-- Add files to the `sample_files/` folder.
-- Use the upload script:
-
-```sh
-python upload_sample_files.py <YourBucketName>
+```bash
+# Upload files from sample_files/ directory
+python upload_sample_files.py <your-bucket-name>
 ```
 
----
+## Manual Lambda Testing
 
-## Manual Lambda Test
-You can manually trigger the Lambda function for testing:
+### Option 1: Python Script (Recommended)
 
-### Using Python script:
-```sh
-python invoke_lambda.py <YourLambdaFunctionName>
+```bash
+python invoke_lambda.py <lambda-function-name>
 ```
 
-#### Example Output
-
-```
-Status code: 200
-Response payload: {
-  "bucket": "my-devops-assignment-bucket",
+**Example Output:**
+```json
+{
+  "bucket": "my-devops-assignment-bucket-123456789012",
   "object_count": 2,
-  "objects": ["file1.txt", "file2.txt"],
+  "objects": ["CS_Gems_Final.pdf", "test.txt"],
   "error": null,
-  "event": {}
+  "event": {},
+  "timestamp": 30000
 }
 ```
 
-### Using AWS CLI:
-```sh
+### Option 2: AWS CLI
+
+```bash
 aws lambda invoke \
-  --function-name <LambdaFunctionName> \
+  --function-name <lambda-function-name> \
   --payload '{}' \
-  output.json
+  response.json
 ```
-Replace `<LambdaFunctionName>` with the name output by the CDK deploy.
 
-### Using AWS Console:
-- Go to AWS Lambda in the console
-- Find your function
-- Click "Test" and use an empty event (`{}`)
+### Option 3: AWS Console
 
----
+1. Go to AWS Lambda Console
+2. Find your function
+3. Click "Test" → "Create new event"
+4. Use empty event: `{}`
+5. Click "Test"
 
 ## GitHub Actions CI/CD
 
-- The project includes a GitHub Actions workflow that deploys your stack when manually triggered from GitHub.
-- You must add your AWS credentials as GitHub repository secrets.
+The project includes automated deployment via GitHub Actions.
 
-### Setting Up AWS Credentials as GitHub Repository Secrets
+### Setup GitHub Secrets
 
-1. In your AWS account, create or use an IAM user with permissions for CDK deployment (CloudFormation, S3, Lambda, IAM, SNS).
-2. In the AWS Console, go to **IAM > Users > [Your User] > Security credentials** and create an **Access key**.
-3. In your GitHub repository, go to **Settings > Secrets and variables > Actions > New repository secret**.
-4. Add the following secrets:
-   - `AWS_ACCESS_KEY_ID` – your AWS access key ID
-   - `AWS_SECRET_ACCESS_KEY` – your AWS secret access key
-   - `AWS_REGION` – your preferred AWS region (e.g., `us-east-1`)
+1. Go to your GitHub repository → Settings → Secrets and variables → Actions
+2. Add these repository secrets:
+   - `AWS_ACCESS_KEY_ID`: Your AWS access key
+   - `AWS_SECRET_ACCESS_KEY`: Your AWS secret key
+   - `AWS_REGION`: Your AWS region (e.g., `us-east-1`)
+   - `SNS_EMAIL`: Your email for notifications
 
-Now you can trigger the workflow from the **Actions** tab in GitHub.
+### Trigger Deployment
+
+1. Go to Actions tab in GitHub
+2. Select "Deploy CDK Stack"
+3. Click "Run workflow"
+4. Select branch and click "Run workflow"
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SNS_EMAIL` | Email for SNS notifications | `your-email@example.com` |
+| `AWS_REGION` | AWS region for deployment | `us-east-1` |
+
+### Customization
+
+- **S3 Bucket Name**: Modify `bucket_name` in `infra/infra_stack.py`
+- **Lambda Timeout**: Adjust `timeout` parameter in Lambda configuration
+- **Email Address**: Set `SNS_EMAIL` environment variable
+
+## Security Features
+
+- **Least-Privilege IAM**: Lambda role has minimal required permissions
+- **S3 Bucket Security**: Private bucket with proper access controls
+- **SNS Topic Security**: Secure topic with email subscription only
+- **Environment Variables**: Sensitive data passed via environment variables
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Email Not Received**
+   - Check spam folder
+   - Confirm SNS subscription in email
+   - Verify email address in environment variable
+
+2. **Lambda Invocation Fails**
+   - Check function name is correct
+   - Verify AWS credentials are configured
+   - Check CloudWatch logs for errors
+
+3. **S3 Upload Fails**
+   - Verify bucket name is correct
+   - Check AWS credentials have S3 permissions
+   - Ensure files exist in `sample_files/` directory
+
+### Useful Commands
+
+```bash
+# Check CDK status
+cdk diff
+
+# Destroy infrastructure
+cdk destroy
+
+# View CloudWatch logs
+aws logs tail /aws/lambda/<function-name> --follow
+
+# List S3 objects
+aws s3 ls s3://<bucket-name>
+```
+
+
+## Technologies Used
+
+- **AWS CDK**: Infrastructure as Code framework
+- **AWS Lambda**: Serverless compute
+- **Amazon S3**: Object storage
+- **Amazon SNS**: Notification service
+- **IAM**: Identity and access management
+- **GitHub Actions**: CI/CD automation
+- **Python**: Programming language
+- **Boto3**: AWS SDK for Python
+
 
 ---
 
-## Notes
-- This project uses placeholder values for the S3 bucket name and SNS email. Change them in the code before deploying to your own AWS account.
-- The S3 bucket and all resources will be **destroyed** if you delete the stack (for learning/demo only).
-- For any questions, see the code comments.
-- **EXPLANATION.md is for your personal learning and should NOT be committed or pushed to GitHub.** 
-
----
-
-## Credits
-
-Built by [your name] as part of a NICE DevOps assignment. 
+**Built with ❤️ using AWS CDK and Python by Gidon Abbas.** 
