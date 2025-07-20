@@ -1,0 +1,13 @@
+# AWS CDK v2 dependencies
+# Note: This project uses CDK v2 only. Do not install CDK v1 packages.
+aws-cdk-lib==2.202.0
+constructs>=10.0.0,<11.0.0
+
+# AWS SDK for Python (required for Lambda function and utility scripts)
+boto3>=1.39.0
+
+# YAML parser (for GitHub Actions workflow validation)
+PyYAML>=6.0.0
+
+# Note: If you see Node.js version warnings, you can silence them by setting:
+# export JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION=true 

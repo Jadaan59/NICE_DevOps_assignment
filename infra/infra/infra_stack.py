@@ -7,6 +7,7 @@ from aws_cdk import (
     aws_sns_subscriptions as subs,
     Duration,
     CfnOutput,
+    RemovalPolicy,
 )
 from constructs import Construct
 import os
@@ -22,7 +23,7 @@ class InfraStack(Stack):
         # Create S3 bucket for storing files
         bucket = s3.Bucket(self, "AssignmentBucket",
             bucket_name=bucket_name,
-            removal_policy=s3.RemovalPolicy.DESTROY,
+            removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True
         )
 

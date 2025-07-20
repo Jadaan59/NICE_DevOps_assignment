@@ -34,19 +34,20 @@ flowchart TD
 ## Project Structure
 
 ```
-├── infra/                    # AWS CDK infrastructure code
-│   ├── app.py               # CDK application entry point
-│   ├── infra_stack.py       # Main infrastructure stack
-│   ├── requirements.txt     # Python dependencies
-│   └── cdk.json            # CDK configuration
-├── lambda/                  # Lambda function code
-│   └── lambda_function.py  # Main Lambda handler
-├── sample_files/           # Files to upload to S3
-├── .github/workflows/      # GitHub Actions CI/CD
-│   └── deploy.yml         # Deployment workflow
-├── invoke_lambda.py        # Manual Lambda trigger script
-├── upload_sample_files.py  # S3 upload utility script
-└── README.md              # This file
+├── requirements.txt              # All project dependencies (CDK, boto3, PyYAML)
+├── infra/                       # AWS CDK infrastructure code
+│   ├── app.py                   # CDK application entry point
+│   ├── infra_stack.py           # Main infrastructure stack
+│   ├── setup_env.sh             # Automated environment setup
+│   └── cdk.json                 # CDK configuration
+├── lambda/                      # Lambda function code
+│   └── lambda_function.py       # Main Lambda handler
+├── sample_files/                # Files to upload to S3
+├── .github/workflows/           # GitHub Actions CI/CD
+│   └── deploy.yml              # Deployment workflow
+├── invoke_lambda.py             # Manual Lambda trigger script
+├── upload_sample_files.py       # S3 upload utility script
+└── README.md                   # This file
 ```
 
 ## Prerequisites
@@ -63,8 +64,7 @@ flowchart TD
 ### 1. Clone and Setup
 
 ```bash
-git clone https://github.com/Jadaan59/
-NICE_DevOps_assignment.git
+git clone https://github.com/Jadaan59/NICE_DevOps_assignment.git
 cd NICE_DevOps_assignment
 ```
 
@@ -81,12 +81,23 @@ export SNS_EMAIL="your-email@example.com"
 
 ### 3. Install Dependencies
 
+**Option 1: Quick Setup (Recommended)**
+```bash
+cd infra
+./setup_env.sh
+```
+
+**Option 2: Manual Setup**
 ```bash
 cd infra
 python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+cd ..
 pip install -r requirements.txt
+cd infra
 ```
+
+**Note**: This project uses AWS CDK v2. If you encounter dependency conflicts, the setup script will automatically resolve them by removing any conflicting CDK v1 packages.
 
 ### 4. Bootstrap AWS CDK (First Time Only)
 
@@ -225,6 +236,14 @@ The project includes automated deployment via GitHub Actions.
 - **Lambda Timeout**: Adjust `timeout` parameter in Lambda configuration
 - **Email Address**: Set `SNS_EMAIL` environment variable
 
+## Dependencies
+
+All project dependencies are consolidated in `requirements.txt`:
+
+- **AWS CDK v2**: Infrastructure as Code framework
+- **boto3**: AWS SDK for Python (Lambda function and utility scripts)
+- **PyYAML**: YAML parser (GitHub Actions workflow validation)
+
 ## Security Features
 
 - **Least-Privilege IAM**: Lambda role has minimal required permissions
@@ -236,21 +255,32 @@ The project includes automated deployment via GitHub Actions.
 
 ### Common Issues
 
-1. **Email Not Received**
+1. **CDK Import Errors**
+   - If you see import errors for `aws_cdk`, run the setup script: `./setup_env.sh`
+   - This ensures only CDK v2 packages are installed (removes conflicting v1 packages)
+   - The setup script automatically resolves dependency conflicts
+
+2. **Email Not Received**
    - Check spam folder
    - Confirm SNS subscription in email (click the confirmation link)
    - Verify email address in environment variable
    - Check SNS topic in AWS Console for subscription status
 
-2. **Lambda Invocation Fails**
+3. **Lambda Invocation Fails**
    - Check function name is correct
    - Verify AWS credentials are configured
    - Check CloudWatch logs for errors
 
-3. **S3 Upload Fails**
+4. **S3 Upload Fails**
    - Verify bucket name is correct
    - Check AWS credentials have S3 permissions
    - Ensure files exist in `sample_files/` directory
+
+5. **Node.js Version Warnings**
+   - If you see warnings about untested Node.js versions, silence them with:
+   ```bash
+   export JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION=true
+   ```
 
 ### Useful Commands
 
@@ -266,12 +296,15 @@ aws logs tail /aws/lambda/<function-name> --follow
 
 # List S3 objects
 aws s3 ls s3://<bucket-name>
-```
 
+# Test all dependencies
+source infra/.venv/bin/activate
+python -c "from aws_cdk import Stack; import boto3; import yaml; print('✅ All dependencies working!')"
+```
 
 ## Technologies Used
 
-- **AWS CDK**: Infrastructure as Code framework
+- **AWS CDK v2**: Infrastructure as Code framework
 - **AWS Lambda**: Serverless compute
 - **Amazon S3**: Object storage
 - **Amazon SNS**: Notification service
@@ -279,7 +312,6 @@ aws s3 ls s3://<bucket-name>
 - **GitHub Actions**: CI/CD automation
 - **Python**: Programming language
 - **Boto3**: AWS SDK for Python
-
 
 ---
 
