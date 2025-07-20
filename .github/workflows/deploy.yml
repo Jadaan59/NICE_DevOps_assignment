@@ -95,7 +95,7 @@ jobs:
           sleep 10
 
           # Create JSON file with payload
-          echo '{"trigger": "github-action"}' > event.json
+          echo '{\"trigger\": \"github-action\"}' > event.json
 
           # Invoke the function with the payload file
           aws lambda invoke \
