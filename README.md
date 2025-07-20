@@ -85,6 +85,7 @@ export SNS_EMAIL="your-email@example.com"
 ```bash
 cd infra
 ./setup_env.sh
+source .venv/bin/activate  # Activate virtual environment
 ```
 
 **Option 2: Manual Setup**
@@ -130,7 +131,7 @@ Files from the `sample_files/` directory will be automatically uploaded to S3 du
 
 ```bash
 # Upload files from sample_files/ directory
-python upload_sample_files.py <your-bucket-name>
+python3 upload_sample_files.py <your-bucket-name>
 ```
 
 ### 7. Post-Deployment Verification
@@ -148,7 +149,7 @@ After deployment, verify everything is working:
 
 3. **Test Lambda Function**:
    ```bash
-   python invoke_lambda.py <lambda-function-name>
+   python3 ../invoke_lambda.py <lambda-function-name>
    ```
 
 4. **Check CloudWatch Logs**:
@@ -199,68 +200,10 @@ aws sns list-topics
 # Test CDK stack locally
 cd infra
 source .venv/bin/activate
-python app.py
-
-# Test Lambda function locally (requires AWS credentials)
-python -c "
-import boto3
-import json
-import sys
-sys.path.append('lambda')
-from lambda_function import lambda_handler
-result = lambda_handler({}, {})
-print(json.dumps(result, indent=2))
-"
+python3 app.py
 ```
 
-## Manual Lambda Testing
 
-You can manually trigger the Lambda function to test its functionality and verify SNS notifications.
-
-### Option 1: Python Script (Recommended)
-
-```bash
-python invoke_lambda.py <lambda-function-name>
-```
-
-**Example Output:**
-```json
-{
-  "bucket": "my-devops-assignment-bucket-123456789012",
-  "object_count": 2,
-  "objects": ["CS_Gems_Final.pdf", "test.txt"],
-  "error": null,
-  "event": {},
-  "timestamp": 30000
-}
-```
-
-### Option 2: AWS CLI
-
-```bash
-aws lambda invoke \
-  --function-name <lambda-function-name> \
-  --payload '{}' \
-  response.json
-
-# View the response
-cat response.json
-```
-
-### Option 3: AWS Console
-
-1. Go to AWS Lambda Console
-2. Find your function
-3. Click "Test" → "Create new event"
-4. Use empty event: `{}`
-5. Click "Test"
-
-### Expected Results
-
-After successful invocation, you should:
-- Receive an email notification from SNS (if subscription is confirmed)
-- See the Lambda response with bucket information
-- Check CloudWatch logs for detailed execution logs
 
 ## GitHub Actions CI/CD
 
@@ -390,7 +333,7 @@ aws s3 ls s3://<bucket-name>  # List S3 objects
 
 # Environment Commands
 source infra/.venv/bin/activate  # Activate virtual environment
-python -c "from aws_cdk import Stack; import boto3; import yaml; print('✅ All dependencies working!')"  # Test dependencies
+python3 -c "from aws_cdk import Stack; import boto3; import yaml; print('✅ All dependencies working!')"  # Test dependencies
 ```
 
 ## Technologies Used
@@ -403,6 +346,18 @@ python -c "from aws_cdk import Stack; import boto3; import yaml; print('✅ All 
 - **GitHub Actions**: CI/CD automation
 - **Python**: Programming language
 - **Boto3**: AWS SDK for Python
+
+## Cleanup
+
+To remove all deployed resources:
+
+```bash
+cd infra
+source .venv/bin/activate
+cdk destroy
+```
+
+**Warning**: This will delete all resources including the S3 bucket and its contents.
 
 ---
 

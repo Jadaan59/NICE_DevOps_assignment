@@ -28,7 +28,7 @@ cd infra
 # Verify installation
 echo "Verifying CDK v2 installation..."
 export JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION=true
-python -c "from aws_cdk import Stack; print('CDK v2 setup successful!')"
+python3 -c "from aws_cdk import Stack; print('CDK v2 setup successful!')"
 
 # Acknowledge CDK notice to clean up future outputs
 echo "Configuring CDK environment..."
