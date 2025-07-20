@@ -203,7 +203,18 @@ After successful invocation, you should:
 
 ## GitHub Actions CI/CD
 
-The project includes automated deployment via GitHub Actions.
+The project includes automated deployment via GitHub Actions with comprehensive testing.
+
+### Automated Testing
+
+The deployment workflow includes automatic testing:
+
+1. **Infrastructure Deployment**: Deploys all AWS resources
+2. **File Upload**: Uploads sample files to S3
+3. **Lambda Testing**: Automatically invokes the Lambda function
+4. **Verification**: Confirms the complete setup is working
+
+This ensures that every deployment is fully functional and ready to use.
 
 ### Setup GitHub Secrets
 
@@ -220,6 +231,12 @@ The project includes automated deployment via GitHub Actions.
 2. Select "Deploy CDK Stack"
 3. Click "Run workflow"
 4. Select branch and click "Run workflow"
+
+**Note**: The deployment workflow will automatically:
+- Deploy all infrastructure (S3, Lambda, SNS, IAM)
+- Upload sample files to S3
+- Test the Lambda function by invoking it
+- Verify the complete setup is working
 
 ## Configuration
 
