@@ -99,9 +99,13 @@ cd infra
 
 **Note**: This project uses AWS CDK v2. If you encounter dependency conflicts, the setup script will automatically resolve them by removing any conflicting CDK v1 packages.
 
-### 4. Bootstrap AWS CDK (First Time Only)
+### 4. Configure AWS CDK (First Time Only)
 
 ```bash
+# Configure CDK with your AWS account
+cdk configure
+
+# Bootstrap CDK (creates required resources in your AWS account)
 cdk bootstrap
 ```
 
@@ -151,6 +155,63 @@ After deployment, verify everything is working:
    ```bash
    aws logs tail /aws/lambda/<function-name> --follow
    ```
+
+## Manual Testing
+
+### CDK Commands for Testing
+
+```bash
+# Check what will be deployed (dry run)
+cdk diff
+
+# Validate the stack
+cdk synth
+
+# List all stacks
+cdk list
+
+# Check deployment status
+cdk doctor
+```
+
+### AWS CLI Testing
+
+```bash
+# List all CloudFormation stacks
+aws cloudformation list-stacks
+
+# Get stack outputs
+aws cloudformation describe-stacks --stack-name InfraStack --query 'Stacks[0].Outputs'
+
+# List Lambda functions
+aws lambda list-functions
+
+# List S3 buckets
+aws s3 ls
+
+# List SNS topics
+aws sns list-topics
+```
+
+### Local Testing
+
+```bash
+# Test CDK stack locally
+cd infra
+source .venv/bin/activate
+python app.py
+
+# Test Lambda function locally (requires AWS credentials)
+python -c "
+import boto3
+import json
+import sys
+sys.path.append('lambda')
+from lambda_function import lambda_handler
+result = lambda_handler({}, {})
+print(json.dumps(result, indent=2))
+"
+```
 
 ## Manual Lambda Testing
 
@@ -211,7 +272,7 @@ The deployment workflow includes automatic testing:
 
 1. **Infrastructure Deployment**: Deploys all AWS resources
 2. **File Upload**: Uploads sample files to S3
-3. **Lambda Testing**: Automatically invokes the Lambda function
+3. **Lambda Testing**: Automatically invokes the Lambda function (triggers SNS)
 4. **Verification**: Confirms the complete setup is working
 
 This ensures that every deployment is fully functional and ready to use.
@@ -277,23 +338,28 @@ All project dependencies are consolidated in `requirements.txt`:
    - This ensures only CDK v2 packages are installed (removes conflicting v1 packages)
    - The setup script automatically resolves dependency conflicts
 
-2. **Email Not Received**
+2. **CDK Configuration Issues**
+   - If `cdk deploy` fails with account/region errors, run: `cdk configure`
+   - Make sure AWS credentials are properly configured: `aws configure`
+   - Check if CDK is bootstrapped: `cdk bootstrap`
+
+3. **Email Not Received**
    - Check spam folder
    - Confirm SNS subscription in email (click the confirmation link)
    - Verify email address in environment variable
    - Check SNS topic in AWS Console for subscription status
 
-3. **Lambda Invocation Fails**
+4. **Lambda Invocation Fails**
    - Check function name is correct
    - Verify AWS credentials are configured
    - Check CloudWatch logs for errors
 
-4. **S3 Upload Fails**
+5. **S3 Upload Fails**
    - Verify bucket name is correct
    - Check AWS credentials have S3 permissions
    - Ensure files exist in `sample_files/` directory
 
-5. **Node.js Version Warnings**
+6. **Node.js Version Warnings**
    - If you see warnings about untested Node.js versions, silence them with:
    ```bash
    export JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION=true
@@ -302,21 +368,29 @@ All project dependencies are consolidated in `requirements.txt`:
 ### Useful Commands
 
 ```bash
-# Check CDK status
-cdk diff
+# CDK Commands
+cdk configure          # Configure CDK with AWS account
+cdk bootstrap          # Bootstrap CDK (first time only)
+cdk diff              # Check what will be deployed
+cdk synth             # Synthesize CloudFormation template
+cdk deploy            # Deploy the stack
+cdk destroy           # Destroy the stack
+cdk doctor            # Check CDK environment
 
-# Destroy infrastructure
-cdk destroy
+# AWS CLI Commands
+aws configure         # Configure AWS credentials
+aws s3 ls            # List S3 buckets
+aws lambda list-functions  # List Lambda functions
+aws sns list-topics  # List SNS topics
 
-# View CloudWatch logs
-aws logs tail /aws/lambda/<function-name> --follow
+# Testing Commands
+cdk diff              # Check deployment changes
+aws logs tail /aws/lambda/<function-name> --follow  # View CloudWatch logs
+aws s3 ls s3://<bucket-name>  # List S3 objects
 
-# List S3 objects
-aws s3 ls s3://<bucket-name>
-
-# Test all dependencies
-source infra/.venv/bin/activate
-python -c "from aws_cdk import Stack; import boto3; import yaml; print('✅ All dependencies working!')"
+# Environment Commands
+source infra/.venv/bin/activate  # Activate virtual environment
+python -c "from aws_cdk import Stack; import boto3; import yaml; print('✅ All dependencies working!')"  # Test dependencies
 ```
 
 ## Technologies Used

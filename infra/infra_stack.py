@@ -53,7 +53,7 @@ class InfraStack(Stack):
         lambda_fn = _lambda.Function(self, "ListS3AndNotifyLambda",
             runtime=_lambda.Runtime.PYTHON_3_9,
             handler="lambda_function.lambda_handler",
-            code=_lambda.Code.from_asset(os.path.join(os.path.dirname(__file__), '../../lambda')),
+            code=_lambda.Code.from_asset(os.path.join(os.path.dirname(__file__), '../lambda')),
             environment={
                 "BUCKET_NAME": bucket.bucket_name,
                 "SNS_TOPIC_ARN": topic.topic_arn
@@ -66,4 +66,4 @@ class InfraStack(Stack):
         CfnOutput(self, "BucketName", value=bucket.bucket_name)
         CfnOutput(self, "LambdaFunctionName", value=lambda_fn.function_name)
         CfnOutput(self, "SnsTopicArn", value=topic.topic_arn)
-        CfnOutput(self, "SnsSubscriptionEmail", value=email_address)
+        CfnOutput(self, "SnsSubscriptionEmail", value=email_address) 
