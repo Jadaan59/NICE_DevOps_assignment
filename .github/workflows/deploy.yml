@@ -80,29 +80,19 @@ jobs:
             echo "No files found in sample_files/ — skipping upload."
           fi
         continue-on-error: true
-        
-      - name: Invoke Lambda Function (Post-Deploy Test)
-        shell: bash
+
+      - name: Invoke Lambda Function (Trigger SNS)
         run: |
           FUNCTION_NAME=$(aws cloudformation describe-stacks \
             --stack-name InfraStack \
             --query "Stacks[0].Outputs[?OutputKey=='LambdaFunctionName'].OutputValue" \
             --output text)
-      
+
           echo "Invoking Lambda: $FUNCTION_NAME"
-          echo "Waiting for Lambda function to be ready..."
-          sleep 10
-      
-          PAYLOAD='{"trigger":"github-action"}'
-      
-          echo "$PAYLOAD" > event.json
-      
-          # Invoke Lambda with proper flag
           aws lambda invoke \
             --function-name "$FUNCTION_NAME" \
-            --payload file://event.json \
-            --cli-binary-format raw-in-base64-out \
+            --payload '{}' \
             response.json
-      
-          echo "Lambda response:"
+
+          echo "Lambda output:"
           cat response.json
