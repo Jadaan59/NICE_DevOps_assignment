@@ -96,7 +96,7 @@ jobs:
 
           aws lambda invoke \
             --function-name "$FUNCTION_NAME" \
-            --payload '{}' \
+            --payload '{"trigger": "github-action"}' \
             response.json
 
           echo "Lambda response:"
