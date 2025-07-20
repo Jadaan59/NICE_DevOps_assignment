@@ -94,9 +94,13 @@ jobs:
           echo "Waiting for Lambda function to be ready..."
           sleep 10
 
+          # Create JSON file with payload
+          echo '{"trigger": "github-action"}' > event.json
+
+          # Invoke the function with the payload file
           aws lambda invoke \
             --function-name "$FUNCTION_NAME" \
-            --payload '{"trigger": "github-action"}' \
+            --payload file://event.json \
             response.json
 
           echo "Lambda response:"
