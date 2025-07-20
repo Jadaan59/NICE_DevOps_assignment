@@ -104,8 +104,8 @@ jobs:
 
           # Check if Lambda invocation was successful
           if [ $? -eq 0 ]; then
-            echo "✅ Lambda function test successful!"
+            echo "Lambda function test successful!"
           else
-            echo "❌ Lambda function test failed!"
+            echo "Lambda function test failed!"
             exit 1
           fi
