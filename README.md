@@ -1,4 +1,4 @@
-# NICE DevOps Assignment - Serverless AWS Application
+# Serverless AWS Application
 
 ## Project Overview
 
